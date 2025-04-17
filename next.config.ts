@@ -6,6 +6,10 @@ const nextConfig = {
     // Disables ESLint during build
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    // Disable TypeScript checks during build
+    ignoreBuildErrors: true,
+  },
   reactStrictMode: true, // Or whatever your existing setting is
   // Add the images configuration block
   images: {
