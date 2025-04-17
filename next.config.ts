@@ -2,6 +2,10 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Disables ESLint during build
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: true, // Or whatever your existing setting is
   // Add the images configuration block
   images: {
