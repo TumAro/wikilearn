@@ -1,89 +1,108 @@
 // src/components/InputForm.tsx
-'use client'; // This component needs state and browser interaction
-
+'use client';
 import React, { useState } from 'react';
-import ExplanationDisplay from './ExplanationDisplay'; // We'll display results here
+import ExplanationDisplay from './ExplanationDisplay';
+// Import shadcn components
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+// Import icon for loading state
+import { Loader2 } from 'lucide-react';
+// Import types (ensure path is correct)
+import type { PedagogicalSectionData, PedagogicalDataError } from '@/prompts/pedagogicalPrompt';
 
-// Define the structure of the data we expect back from our API
-interface ExplanationData {
-    simplifiedText: string;
-    quizData: any; // Replace 'any' with a specific type for your quiz later
-    originalUrl: string;
+// Define types
+interface ProcessedSection {
+    sectionTitle: string;
+    pedagogicalData: PedagogicalSectionData | PedagogicalDataError;
+}
+interface ApiExplainerResponse {
+    pageTitle?: string;
+    mainImageUrl?: string | null;
+    sections?: ProcessedSection[];
+    originalUrl?: string;
+    error?: string; // For top-level errors
 }
 
 export default function InputForm() {
-  // State hooks to manage the component's data and behavior
-  const [url, setUrl] = useState(''); // Stores the text in the input field
-  const [isLoading, setIsLoading] = useState(false); // Tracks if the API call is in progress
-  const [error, setError] = useState<string | null>(null); // Stores any error message
-  const [explanationData, setExplanationData] = useState<ExplanationData | null>(null); // Stores the result from the API
+  const [url, setUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [apiResponseData, setApiResponseData] = useState<ApiExplainerResponse | null>(null);
 
-  // Function called when the form is submitted
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission (page reload)
-    setIsLoading(true);     // Set loading state to true
-    setError(null);         // Clear any previous error
-    setExplanationData(null); // Clear previous results
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setApiResponseData(null);
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) { setError("Please enter a Wikipedia URL."); setIsLoading(false); return; }
+    if (!trimmedUrl.startsWith('http')) { setError("URL must start with http:// or https://"); setIsLoading(false); return; }
 
     try {
-      // Send a POST request to our API endpoint
       const response = await fetch('/api/explain', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', // Tell the server we're sending JSON
-        },
-        body: JSON.stringify({ url: url }), // Send the URL in the request body as JSON
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: trimmedUrl }),
       });
-
-      // Check if the request was successful (status code 2xx)
-      if (!response.ok) {
-        // If not okay, try to parse the error message from the response
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Something went wrong (Status: ${response.status})`);
+      const data: ApiExplainerResponse = await response.json();
+      if (!response.ok || data.error) {
+         throw new Error(data.error || `Request failed: ${response.statusText || response.status}`);
       }
-
-      // If successful, parse the JSON data from the response
-      const data: ExplanationData = await response.json();
-      setExplanationData(data); // Store the received data in state
-
-    } catch (err: any) { // Catch any errors during fetch or processing
-      console.error("Fetch error:", err);
-      setError(err.message || 'An unexpected error occurred.'); // Set the error message state
+      setApiResponseData(data);
+    } catch (err: any) {
+      console.error("Form submission error:", err);
+      setError(err.message || 'An unexpected error occurred.');
+      setApiResponseData(null);
     } finally {
-      setIsLoading(false); // Set loading state back to false, whether success or error
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl"> {/* Container with max width */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 mb-4"> {/* Form layout */}
-         <input
-           type="url"
-           value={url}
-           onChange={(e) => setUrl(e.target.value)} // Update state when input changes
-           placeholder="Enter Wikipedia URL"
-           required // Make input required
-           disabled={isLoading} // Disable input while loading
-           className="flex-grow p-2 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500" // Styling
+    // Use max-width for responsiveness
+    <div className="w-full max-w-3xl px-2 sm:px-0">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-3 mb-8"> {/* Slightly smaller gap */}
+         <Input
+           type="url" value={url} onChange={(e) => setUrl(e.target.value)}
+           placeholder="Enter Wikipedia URL..."
+           required disabled={isLoading}
+           className="flex-grow h-11 text-base px-4" // Adjusted height
+           aria-label="Wikipedia URL Input"
          />
-         <button
-           type="submit"
-           disabled={isLoading} // Disable button while loading
-           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out" // Styling
-         >
-           {isLoading ? 'Processing...' : 'Explain'} {/* Change button text based on loading state */}
-         </button>
+         <Button type="submit" disabled={isLoading} size="lg" className="h-11 w-full sm:w-auto px-6"> {/* Adjusted height */}
+           {isLoading ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {/* Adjusted icon size */}
+                    Processing...
+                </>
+           ) : (
+                'Explain'
+           )}
+         </Button>
       </form>
 
-      {/* Display error message if there is one */}
-      {error && <p className="text-red-500 text-center mb-4">Error: {error}</p>}
+      {/* Loading Indicator */}
+      {isLoading && (
+        <div className="text-center p-8 text-muted-foreground flex justify-center items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Fetching and processing sections...</span>
+        </div>
+       )}
 
-      {/* Conditionally render the ExplanationDisplay component only when we have data */}
-      {explanationData && (
+      {/* Error Message - Consider using shadcn Alert */}
+      {error && (
+        <div className="text-center p-4 mb-6 bg-destructive/10 border border-destructive/30 text-destructive-foreground dark:text-destructive rounded-lg">
+            <p><strong className="font-medium">Error:</strong> {error}</p>
+        </div>
+       )}
+
+      {/* Explanation Display - Rendered conditionally */}
+      {apiResponseData && !error && (
         <ExplanationDisplay
-          simplifiedText={explanationData.simplifiedText}
-          quizData={explanationData.quizData}
-          originalUrl={explanationData.originalUrl}
+          pageTitle={apiResponseData.pageTitle}
+          mainImageUrl={apiResponseData.mainImageUrl}
+          sections={apiResponseData.sections}
+          originalUrl={apiResponseData.originalUrl}
         />
       )}
     </div>
