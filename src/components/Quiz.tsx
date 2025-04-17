@@ -12,9 +12,9 @@ import type { QuizQuestion } from '@/prompts/pedagogicalPrompt'; // Ensure path 
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/20/solid'; // Ensure installed
 // Import ReactMarkdown and plugins
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import rehypeRaw from 'rehype-raw';
+import remarkMath from 'remark-math'; // Ensure installed
+import rehypeKatex from 'rehype-katex'; // Ensure installed
+import rehypeRaw from 'rehype-raw'; // Ensure installed
 
 interface QuizProps {
   questions: QuizQuestion[];

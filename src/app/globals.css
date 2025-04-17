@@ -121,10 +121,18 @@
   }
 }
 
+/* Target inline and display math for size */
 .katex {
-  font-size: 1.1em !important;
+  font-size: 1.1em !important; /* Adjust size as needed (e.g., 1.1em, 1.2em) */
+  text-rendering: auto !important; /* Ensure standard rendering */
+  line-height: normal !important; /* Ensure normal line height */
 }
 
+/* Target display math specifically for block layout */
 .katex-display {
-  font-size: 1.2em !important;
+  display: block !important; /* CRUCIAL: Make it a block element */
+  overflow-x: auto !important; /* Allow horizontal scroll for wide equations */
+  overflow-y: hidden !important;
+  padding: 0.75em 0 !important; /* Add vertical spacing */
+  text-align: center !important; /* Center the block equation */
 }
