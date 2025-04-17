@@ -1,22 +1,25 @@
 // src/components/ExplanationDisplay.tsx
-'use client'; // Ensure this is the very first line
-
+'use client';
 import React from 'react';
 import Image from 'next/image';
-import Quiz from './Quiz'; // Assuming Quiz component is correct
+import Quiz from './Quiz';
+// Import shadcn Card components
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"; // Ensure path is correct
-import ReactMarkdown from 'react-markdown'; // Ensure installed and imported
-// Import types - Ensure path is correct and types are exported from pedagogicalPrompt.ts
+} from "@/components/ui/card";
+// Import ReactMarkdown and necessary plugins
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw'; // To handle raw HTML like <sub>
+// Import types
 import type { PedagogicalSectionData, PedagogicalDataError } from '@/prompts/pedagogicalPrompt';
 
 // Define the structure for each section received as a prop
-// Ensure this matches the structure used in InputForm.tsx and route.ts
 interface ProcessedSection {
     sectionTitle: string;
     pedagogicalData: PedagogicalSectionData | PedagogicalDataError;
@@ -26,26 +29,19 @@ interface ProcessedSection {
 interface ExplanationDisplayProps {
   pageTitle?: string;
   mainImageUrl?: string | null;
-  sections?: ProcessedSection[] | null; // Array of sections or null/undefined
+  sections?: ProcessedSection[] | null;
   originalUrl?: string | null;
 }
 
 // Type guard function to check if the pedagogicalData is an error
 function isPedagogicalError(data: PedagogicalSectionData | PedagogicalDataError): data is PedagogicalDataError {
-  // Check for the existence of the 'error' property
   return typeof data === 'object' && data !== null && 'error' in data;
 }
 
-// Component definition - ensure export default is correct
 export default function ExplanationDisplay({ pageTitle, mainImageUrl, sections, originalUrl }: ExplanationDisplayProps) {
 
-  // Handle loading state or missing/empty sections array
-  if (!sections) {
-    // Optional: Add a loading indicator if needed, otherwise return null or placeholder
-    return null;
-  }
-  if (sections.length === 0) {
-    // Render specific message if the array is empty after processing
+  // Handle missing/empty sections array
+  if (!sections || sections.length === 0) {
     return (
         <Card className="mt-6 border-yellow-500/50 dark:border-yellow-600/60 bg-yellow-50/50 dark:bg-yellow-900/20">
              <CardHeader>
@@ -56,17 +52,12 @@ export default function ExplanationDisplay({ pageTitle, mainImageUrl, sections, 
              </CardContent>
         </Card>
     );
-  } // <-- End of sections length check
+  }
 
-  // Main return when sections array has items
   return (
     <div className="mt-8 space-y-8 md:space-y-10">
       {/* Page Title */}
-      {pageTitle && (
-        <h1 className="text-3xl md:text-4xl font-bold text-center text-foreground mb-8 tracking-tight">
-            {pageTitle}
-        </h1>
-      )}
+      {pageTitle && <h1 className="text-3xl md:text-4xl font-bold text-center text-foreground mb-8 tracking-tight">{pageTitle}</h1>}
 
       {/* Main Image */}
       {mainImageUrl && (
@@ -81,14 +72,14 @@ export default function ExplanationDisplay({ pageTitle, mainImageUrl, sections, 
          </div>
       )}
 
-      {/* Map over the sections array */}
-      {sections.map((section, index) => ( // section and index should be correctly inferred here
+      {/* Sections */}
+      {sections.map((section, index) => (
         <Card key={section.sectionTitle || index} className="overflow-hidden shadow-sm dark:shadow-none border border-border">
            <CardHeader className="pb-4 bg-muted/30 dark:bg-muted/10">
                 <CardTitle className="text-xl md:text-2xl font-semibold">
                      {section.sectionTitle || `Section ${index + 1}`}
                 </CardTitle>
-                {/* Check if NOT error AND introduction exists before rendering CardDescription */}
+                {/* Render introduction only if data is not an error */}
                 {!isPedagogicalError(section.pedagogicalData) && section.pedagogicalData.explanation?.introduction && (
                     <CardDescription className="pt-2 text-sm">
                         {section.pedagogicalData.explanation.introduction}
@@ -117,11 +108,15 @@ export default function ExplanationDisplay({ pageTitle, mainImageUrl, sections, 
                     {/* Explanation */}
                     <div className="explanation-content space-y-3">
                         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Explanation</h3>
-                        {/* Render coreConcepts using ReactMarkdown */}
+                        {/* Render coreConcepts using ReactMarkdown with ALL plugins */}
                         {section.pedagogicalData.explanation?.coreConcepts && (
                             <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground leading-relaxed">
-                                <ReactMarkdown>
-                                    {section.pedagogicalData.explanation.coreConcepts}
+                                <ReactMarkdown
+                                     remarkPlugins={[remarkMath]}
+                                     // rehypeRaw MUST come before rehypeKatex
+                                     rehypePlugins={[rehypeRaw, rehypeKatex]}
+                                >
+                                     {section.pedagogicalData.explanation.coreConcepts}
                                 </ReactMarkdown>
                             </div>
                         )}

@@ -4,6 +4,7 @@ import { Inter as FontSans } from "next/font/google"; // Font setup likely added
 import { Providers } from './providers';
 import './globals.css'; // Includes shadcn theme variables
 import { cn } from "@/lib/utils"; // shadcn utility
+import 'katex/dist/katex.min.css'; // Import KaTeX CSS
 
 const fontSans = FontSans({
   subsets: ["latin"],
