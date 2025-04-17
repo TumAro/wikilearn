@@ -11,7 +11,7 @@ import type { QuizQuestion } from '@/prompts/pedagogicalPrompt'; // Ensure path 
 // Import icons
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/20/solid'; // Ensure installed
 // Import ReactMarkdown and plugins
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown'; // Ensure installed
 import remarkMath from 'remark-math'; // Ensure installed
 import rehypeKatex from 'rehype-katex'; // Ensure installed
 import rehypeRaw from 'rehype-raw'; // Ensure installed
@@ -31,10 +31,8 @@ export default function Quiz({ questions }: QuizProps) {
 
   // Explicitly type the return value as string
   const getFeedbackClass = (isCorrect: boolean | null): string => {
-     if (isCorrect === null || !submitted) return ""; // Always returns string
-     return isCorrect
-       ? "text-green-700 dark:text-green-400" // Returns string
-       : "text-red-700 dark:text-red-400"; // Returns string
+     if (isCorrect === null || !submitted) return "";
+     return isCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400";
   };
 
   // Explicitly type the return value as string
@@ -45,22 +43,18 @@ export default function Quiz({ questions }: QuizProps) {
     const selectedIdle = "border-primary ring-1 ring-primary bg-primary/5 cursor-pointer";
 
     if (!submitted) {
-      // Returns string
       return `${base} ${selectedAnswers[qIdStr] === option ? selectedIdle : idle}`;
     }
 
-    // After submission logic
     const isSelected = selectedAnswers[qIdStr] === option;
     const isCorrect = option === correctAnswer;
     const correctStyle = "border-green-600 bg-green-500/10 text-green-800 dark:text-green-300 dark:border-green-500 dark:bg-green-500/15 cursor-default";
     const incorrectSelectedStyle = "border-red-600 bg-red-500/10 text-red-800 dark:text-red-300 dark:border-red-500 dark:bg-red-500/15 cursor-default";
     const incorrectUnselectedStyle = "border-border bg-background opacity-60 cursor-default";
 
-    if (isCorrect) return `${base} ${correctStyle}`; // Returns string
-    if (isSelected && !isCorrect) return `${base} ${incorrectSelectedStyle}`; // Returns string
-
-    // Catch-all for incorrect, unselected options
-    return `${base} ${incorrectUnselectedStyle}`; // Always returns string
+    if (isCorrect) return `${base} ${correctStyle}`;
+    if (isSelected && !isCorrect) return `${base} ${incorrectSelectedStyle}`;
+    return `${base} ${incorrectUnselectedStyle}`; // Return value for incorrect, unselected
   };
 
 
@@ -123,8 +117,9 @@ export default function Quiz({ questions }: QuizProps) {
                         <Label htmlFor={uniqueId} className={`flex-grow ${submitted ? 'cursor-default' : 'cursor-pointer'} text-sm leading-snug`}>
                              <ReactMarkdown
                                 remarkPlugins={[remarkMath]}
-                                rehypePlugins={[rehypeRaw, rehypeKatex]} // Ensure rehypeRaw is first
-                                disallowedElements={['p']} // Avoid extra paragraphs in label
+                                // rehypeRaw first to handle HTML, then rehypeKatex
+                                rehypePlugins={[rehypeRaw, rehypeKatex]}
+                                disallowedElements={['p']} // Avoid <p> tags within label
                                 unwrapDisallowed={true}
                              >
                                 {option}
@@ -133,19 +128,19 @@ export default function Quiz({ questions }: QuizProps) {
                         {/* Feedback Icons */}
                         {submitted && isCorrect && <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400 ml-auto flex-shrink-0" />}
                         {submitted && isSelected && !isCorrect && <XCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400 ml-auto flex-shrink-0" />}
-                    </div> // Closing div for option container
-                ); // Closing return for option map
-              })} {/* Closing option map */}
-            </RadioGroup> {/* Closing RadioGroup */}
+                    </div>
+                );
+              })}
+            </RadioGroup>
              {/* Text Feedback */}
              {submitted && results[qIdStr] !== null && (
                   <p className={`mt-2 text-xs sm:text-sm font-medium ${getFeedbackClass(results[qIdStr])}`}>
                      {results[qIdStr] ? 'Correct!' : `Incorrect. Correct answer: "${q.answer}"`}
                   </p>
               )}
-          </div> // Closing div for question block
-        ); // Closing return for question map
-      })} {/* Closing question map */}
+          </div>
+        );
+      })}
 
       {/* Action Buttons */}
       <div className="mt-6 flex justify-end gap-3">
@@ -159,6 +154,6 @@ export default function Quiz({ questions }: QuizProps) {
             </Button>
          )}
       </div>
-    </div> // Closing main return div
-  ); // Closing main return statement
-} // Closing Component function
+    </div>
+  );
+}

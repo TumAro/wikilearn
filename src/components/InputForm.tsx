@@ -14,6 +14,9 @@ interface SectionChunkData extends ProcessedSection { currentIndex?: number; tot
 interface ErrorChunkData { message: string; originalUrl?: string; }
 interface StatusChunkData { message: string; }
 
+// localstorage key
+const LOCAL_STORAGE_KEY = 'userGoogleApiKey';
+
 export default function InputForm() {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,8 +36,11 @@ export default function InputForm() {
     const trimmedUrl = url.trim();
     if (!trimmedUrl || !trimmedUrl.startsWith('http')) { setError("Please enter a valid Wikipedia URL."); setIsLoading(false); setLoadingStatus(null); return; }
 
+    const userApiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
+    console.log("Using API Key:", userApiKey ? "User Provided (Local)" : "Default (Server)")
+
     try {
-      const response = await fetch('/api/explain', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: trimmedUrl }), signal: newAbortController.signal });
+      const response = await fetch('/api/explain', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: trimmedUrl, userApiKey: userApiKey }), signal: newAbortController.signal });
       if (!response.ok) { const errData = await response.json().catch(() => ({})); throw new Error(errData.error || `Request failed: ${response.status}`); }
       if (!response.body) throw new Error("Response body missing.");
 

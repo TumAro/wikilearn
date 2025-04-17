@@ -1,6 +1,7 @@
 // src/app/page.tsx
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { GithubLink } from '@/components/GithubLink';
+import { SettingsButtonController } from '@/components/ApiKeyDialog';
 import InputForm from '@/components/InputForm'; // <-- Import InputForm
 
 export default function HomePage() {
@@ -10,6 +11,7 @@ export default function HomePage() {
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <GithubLink />
         <ThemeSwitcher />
+        <SettingsButtonController />
       </div>
 
       {/* Main content area */}
