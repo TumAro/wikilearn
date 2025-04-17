@@ -1,9 +1,9 @@
 {
   "name": "wikilearn",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "private": true,
   "scripts": {
-    "install": "npm install --legacy-peer-deps",
+    "install": "npm ci --legacy-peer-deps",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
